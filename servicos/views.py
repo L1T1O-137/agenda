@@ -1,12 +1,13 @@
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.paginator import Paginator
+from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 
-from servicos.forms import ServicoModelForm
+from servicos.forms import ServicoModelForm, ProdutosServicoInLine
 from servicos.models import Servico
 
 
@@ -35,12 +36,58 @@ class ServicoAddView(SuccessMessageMixin, CreateView):
     success_url = reverse_lazy('servicos')
     success_message = 'Serviço cadastrado com sucesso!'
 
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data(**kwargs)
+        if self.request.POST:
+            data['frm_inline'] = ProdutosServicoInLine(self.request.POST)
+        else:
+            data['frm_inline'] = ProdutosServicoInLine()
+        return data
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        frm_inline = context['frm_inline']
+        with transaction.atomic():
+            if frm_inline.is_valid():
+                self.object = form.save()
+                frm_inline.instance = self.object
+                frm_inline.save()
+                return super().form_valid(form)
+            else:
+                return self.render_to_response(self.get_context_data(form=form))
+
+
 class ServicoUpdateView(SuccessMessageMixin, UpdateView):
     model = Servico
     form_class = ServicoModelForm
     template_name = 'servico_form.html'
     success_url = reverse_lazy('servicos')
     success_message = 'Serviço alterado com sucesso!'
+
+    def get_queryset(self):
+        return super().get_queryset().prefetch_related('produtos_servico_servico')
+
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data(**kwargs)
+        if self.request.POST:
+            data['frm_inline'] = ProdutosServicoInLine(self.request.POST, instance=self.object)
+        else:
+            data['frm_inline'] = ProdutosServicoInLine(instance=self.object)
+        return data
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        frm_inline = context['frm_inline']
+        with transaction.atomic():
+            if frm_inline.is_valid():
+                self.object = form.save()
+                frm_inline.instance = self.object
+                frm_inline.save()
+                return super().form_valid(form)
+            else:
+                return self.render_to_response(self.get_context_data(form=form))
+
+
 
 class ServicoDeleteView(SuccessMessageMixin, DeleteView):
     model = Servico

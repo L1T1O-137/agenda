@@ -27,7 +27,7 @@
                                 <th>Nome</th>
                                 <th>Descrição</th>
                                 <th>Preço</th>
-
+                                <th>Produtos</th>
                                 <th style="width: 100px; text-align: center">Ações</th>
                             </thead>
                             <tbody>
@@ -36,7 +36,17 @@
                                         <td> {{ servico.nome }}  </td>
                                         <td> {{ servico.descricao }} </td>
                                         <td> {{ servico.preco }} </td>
-                                        
+                                        <td>
+                                            {% for produto in servico.produtos.all %}
+                                                {% if forloop.last %}
+                                                    {{ produto }}
+                                                {% else %}
+                                                    {{ produto }}
+                                                {% endif %}
+                                            {% empty %}
+                                                Nenhum produto registrado para este serviço
+                                            {% endfor %}
+                                        </td>
                                         <td style="text-align: center">
                                              
                                             <a href="{% url 'servico_editar' servico.pk %}">
