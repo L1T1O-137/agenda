@@ -30,9 +30,9 @@ class AgendamentosView(ListView):
                 cliente = form.cleaned_data.get('cliente')
                 funcionario = form.cleaned_data.get('funcionario')
                 if cliente:
-                    qs = qs.filter(cliente=cliente)
+                    qs = qs.filter(cliente_id=cliente)
                 if funcionario:
-                    qs = qs.filter(funcionario=funcionario)
+                    qs = qs.filter(funcionario_id=funcionario)
         if qs.count()>0:
             paginator = Paginator(qs, 1)
             listagem = paginator.get_page(self.request.GET.get('page'))
@@ -82,7 +82,7 @@ class AgendamentoUpdateView(SuccessMessageMixin,UpdateView):
         if self.request.POST:
             data['frm_inline'] = AgendamentosServicoInLine(self.request.POST, instance=self.object)
         else:
-            data['frm_inline'] = AgendamentosServicoInLine()
+            data['frm_inline'] = AgendamentosServicoInLine(instance=self.object)
         return data
 
 
