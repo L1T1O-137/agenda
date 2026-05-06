@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models.functions import Upper
 
 from clientes.models import Cliente
 
@@ -8,10 +9,16 @@ class Agendamento(models.Model):
     cliente = models.ForeignKey('clientes.Cliente', verbose_name='Cliente', help_text='Nome do cliente', on_delete=models.PROTECT)
     funcionario = models.ForeignKey('funcionarios.Funcionario', verbose_name='Funcionário', help_text='Nome do funcionário', on_delete=models.PROTECT)
     servicos = models.ManyToManyField('servicos.Servico', verbose_name='Serviço', through='agendamentos.OrdemServicos')
+    valor = models.DecimalField('Valor total', max_digits=6, decimal_places=2, default=0.00)
+    status = models.CharField('Status', max_length=1, help_text='Status', default='A')
+
+
+
 
     class Meta:
         verbose_name = 'Agendamento'
         verbose_name_plural = 'Agendamentos'
+        ordering = ['-horario']
 
 
     def __str__(self):
@@ -29,6 +36,24 @@ class OrdemServicos(models.Model):
     situacao = models.CharField('Situação', max_length=1, choices=SITUACAO_OPCOES, default='A')
     observacoes = models.TextField('Observações', max_length=500, blank=True, null=True)
     preco = models.DecimalField('Preço', max_digits=6, decimal_places=2, default=0.00)
+
+    def calcular_valor_ordem(self):
+        valor_total = 0
+        qs = OrdemServicos.objects.filter(agendamento=self.agendamento)
+        for item in qs:
+            if item.situacao != 'C':
+                valor_total += item.preco
+        self.agendamento.valor = valor_total
+        self.agendamento.save()
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        self.preco = self.servico.preco
+        super().save(force_insert=False, force_update=False, using=None, update_fields=None)
+        self.calcular_valor_ordem()
+
+    def delete(self, using=None, keep_parents=False):
+        super().delete(using=None, keep_parents=None)
+        self.calcular_valor_ordem()
 
     class Meta:
         verbose_name = 'Serviço realizado'

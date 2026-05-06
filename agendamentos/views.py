@@ -1,12 +1,17 @@
+from urllib import request
+
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.urls import reverse_lazy
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.shortcuts import render
+
+from servicos.models import ProdutosServico
 from .forms import AgendamentoListForm, AgendamentoModelForm, AgendamentosServicoInLine
-from .models import Agendamento
+from .models import Agendamento, OrdemServicos
+
 
 class AgendamentosView(ListView):
     model = Agendamento
@@ -34,7 +39,7 @@ class AgendamentosView(ListView):
                 if funcionario:
                     qs = qs.filter(funcionario_id=funcionario)
         if qs.count()>0:
-            paginator = Paginator(qs, 1)
+            paginator = Paginator(qs, 10)
             listagem = paginator.get_page(self.request.GET.get('page'))
             return listagem
         else:
@@ -49,7 +54,7 @@ class AgendamentoAddView(SuccessMessageMixin,CreateView):
 
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
-        if self.request.GET:
+        if self.request.POST:
             data['frm_inline'] = AgendamentosServicoInLine(self.request.POST)
         else:
             data['frm_inline'] = AgendamentosServicoInLine()
@@ -85,10 +90,23 @@ class AgendamentoUpdateView(SuccessMessageMixin,UpdateView):
             data['frm_inline'] = AgendamentosServicoInLine(instance=self.object)
         return data
 
-
     def form_valid(self, form):
         context = self.get_context_data()
         frm_inline = context['frm_inline']
+        if frm_inline.is_valid():
+            for form_item in frm_inline:
+                if not form_item.cleaned_data or form_item.cleaned_data.get('DELETE'):
+                    continue
+                situacao = form_item.cleaned_data.get('situacao')
+                servico = form_item.cleaned_data.get('servico')
+                if situacao != 'C':
+                    produtoservico = ProdutosServico.objects.filter(servico=servico)
+                    if produtoservico:
+                        for prd in produtoservico:
+                            produto = prd.produto
+                            if produto.quantidade < prd.quantidade:
+                                messages.error(self, request, f'Atenção! Quantidade em estoque insuficiente para o produto {produto.nome}')
+                                return self.render_to_response(self.get_context_data(form=form))
         with transaction.atomic():
             if frm_inline.is_valid():
                 self.object = form.save()
@@ -106,4 +124,26 @@ class AgendamentoDeleteView(SuccessMessageMixin,DeleteView):
     success_message = 'Agendamento apagado com sucesso!'
 
 
+class AgendamentoExibir(DetailView):
+    model = Agendamento
+    template_name = 'agendamento_exibir.html'
 
+    def get_object(self, queryset=None):
+        agendamento = Agendamento.objects.get(pk=self.kwargs.get('pk'))
+        if agendamento.status == 'A':
+            ordem_servico = OrdemServicos.objects.filter(agendamento=agendamento)
+            lista_situacao = ordem_servico.values_list('situacao', flat=True)
+            if 'A' in (lista_situacao):
+                messages.info(self.request, 'Ordem de serviço não pode ser encerrada. Existem serviçoos com a situação em aberto!')
+            else:
+                for ordem in ordem_servico:
+                    if ordem.situacao == 'R':
+                        if ordem.servico.produtos:
+                            produto_servico = ProdutosServico.objects.filter(servico=ordem.servico)
+                            for item in produto_servico:
+                                produto = ProdutosServico.objects.filter(servico=item.servico)
+                                produto.quantidade -= item.quantidade
+                                produto.save()
+                agendamento.status = 'F'
+                agendamento.save()
+        return agendamento

@@ -2,8 +2,8 @@ from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Q
-from django.shortcuts import render
+from django.db.models import Q, ProtectedError
+from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 
@@ -23,7 +23,7 @@ class ServicosView(ListView):
             qs = qs.filter(Q(nome__icontains=buscar)|Q(descricao__icontains=buscar))
 
         if qs.count() > 0:
-            paginator = Paginator(qs, 1)
+            paginator = Paginator(qs, 10)
             listagem = paginator.get_page(self.request.GET.get('page'))
             return listagem
         else:
@@ -94,3 +94,14 @@ class ServicoDeleteView(SuccessMessageMixin, DeleteView):
     template_name = 'servico_apagar.html'
     success_url = reverse_lazy('servicos')
     success_message = 'Serviço apagado com sucesso!'
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        try:
+            return super().post(request, *args, **kwargs)
+        except ProtectedError:
+            messages.error(request, f'O serviço {self.object} não pode ser excluído.'
+                           f'Esse serviço está registrado em ordens de serviço.')
+
+        return redirect(success_url)

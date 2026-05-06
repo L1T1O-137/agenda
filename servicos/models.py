@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models.functions import Upper
+
 
 class Servico(models.Model):
     nome = models.CharField(max_length=100, help_text='Nome completo do serviço', unique=True)
@@ -8,6 +10,7 @@ class Servico(models.Model):
     class Meta:
         verbose_name = 'Serviço'
         verbose_name_plural = 'Serviços'
+        ordering = [Upper('nome')]
 
     def __str__(self):
         return self.nome
@@ -20,6 +23,8 @@ class ProdutosServico(models.Model):
     class Meta:
         verbose_name = 'Produto utilizado'
         verbose_name_plural = 'Produtos utilizados'
+
+        constraints = [models.UniqueConstraint(fields=['servico', 'produto'], name='constraint_servico_produto')]
 
     def __str__(self):
         return f'{self.produto}'

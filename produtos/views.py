@@ -1,7 +1,8 @@
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.db.models import ProtectedError
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 from produtos.forms import ProdutoModelForm
 from produtos.models import Produto
@@ -47,3 +48,14 @@ class ProdutoDeleteView(DeleteView):
     template_name = 'produto_apagar.html'
     success_url = reverse_lazy('produtos')
     success_message = 'Produto apagado com sucesso!'
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+        try:
+            return super().post(request, *args, **kwargs)
+        except ProtectedError:
+            messages.error(request, f'O produto {self.object} não pode ser excluído.'
+                           f'Esse produto é utilizado em serviços.')
+
+        return redirect(success_url)
