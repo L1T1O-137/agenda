@@ -108,10 +108,10 @@ class AgendamentoUpdateView(SuccessMessageMixin,UpdateView):
                         for prd in produtoservico:
                             produto = prd.produto
                             if produto.quantidade < prd.quantidade:
-                                messages.error(self, request, f'Atenção! Quantidade em estoque insuficiente para o produto {produto.nome}')
+                                messages.error(self.request, f'Atenção! Quantidade em estoque insuficiente para o produto {produto.nome}')
                                 return self.render_to_response(self.get_context_data(form=form))
         with transaction.atomic():
-            if frm_inline.is_valid():
+            if frm_inline.is_valid() and frm_inline.is_valid:
                 self.object = form.save()
                 frm_inline.instance = self.object
                 frm_inline.save()
