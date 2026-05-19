@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.paginator import Paginator
 from django.db.models import ProtectedError
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
@@ -10,7 +11,9 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse_lazy
 
 
-class ProdutosView(ListView):
+class ProdutosView(PermissionRequiredMixin, ListView):
+    permission_required = 'produtos.view_produto'
+    permission_denied_message = 'Visualizar produtos'
     model = Produto
     template_name = 'produtos.html'
     context_object_name = 'produtos'
@@ -29,21 +32,27 @@ class ProdutosView(ListView):
         else:
             return messages.info(self.request, 'Não existem produtos cadastrados!')
 
-class ProdutoAddView(SuccessMessageMixin, CreateView):
+class ProdutoAddView(PermissionRequiredMixin, SuccessMessageMixin, CreateView):
+    permission_required = 'produtos.add_produto'
+    permission_denied_message = 'Cadastrar produtos'
     model = Produto
     form_class = ProdutoModelForm
     template_name = 'produto_form.html'
     success_url = reverse_lazy('produtos')
     success_message = 'Produto cadastrado com sucesso!'
 
-class ProdutoUpdateView(SuccessMessageMixin, UpdateView):
+class ProdutoUpdateView(PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
+    permission_required = 'produtos.update_produto'
+    permission_denied_message = 'Editar produtos'
     model = Produto
     form_class = ProdutoModelForm
     template_name = 'produto_form.html'
     success_url = reverse_lazy('produtos')
     success_message = 'Produto alterado com sucesso!'
 
-class ProdutoDeleteView(DeleteView):
+class ProdutoDeleteView(PermissionRequiredMixin, DeleteView):
+    permission_required = 'produtos.delete_produto'
+    permission_denied_message = 'Excluir produtos'
     model = Produto
     template_name = 'produto_apagar.html'
     success_url = reverse_lazy('produtos')

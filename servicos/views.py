@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.paginator import Paginator
 from django.db import transaction
@@ -11,7 +12,9 @@ from servicos.forms import ServicoModelForm, ProdutosServicoInLine
 from servicos.models import Servico
 
 
-class ServicosView(ListView):
+class ServicosView(PermissionRequiredMixin, ListView):
+    permission_required = 'servicos.view_servico'
+    permission_denied_message = 'Visualizar serviços'
     model = Servico
     template_name = 'servicos.html'
 
@@ -29,7 +32,9 @@ class ServicosView(ListView):
         else:
             return messages.info(self.request, 'Não existem serviços cadastrados!')
 
-class ServicoAddView(SuccessMessageMixin, CreateView):
+class ServicoAddView(PermissionRequiredMixin, SuccessMessageMixin, CreateView):
+    permission_required = 'servicos.add_servico'
+    permission_denied_message = 'Cadastrar serviços'
     model = Servico
     form_class = ServicoModelForm
     template_name = 'servico_form.html'
@@ -57,7 +62,9 @@ class ServicoAddView(SuccessMessageMixin, CreateView):
                 return self.render_to_response(self.get_context_data(form=form))
 
 
-class ServicoUpdateView(SuccessMessageMixin, UpdateView):
+class ServicoUpdateView(PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
+    permission_required = 'servicos.update_servico'
+    permission_denied_message = 'Editar serviços'
     model = Servico
     form_class = ServicoModelForm
     template_name = 'servico_form.html'
@@ -89,7 +96,9 @@ class ServicoUpdateView(SuccessMessageMixin, UpdateView):
 
 
 
-class ServicoDeleteView(SuccessMessageMixin, DeleteView):
+class ServicoDeleteView(PermissionRequiredMixin, SuccessMessageMixin, DeleteView):
+    permission_required = 'servicos.delete_servico'
+    permission_denied_message = 'Excluir serviços'
     model = Servico
     template_name = 'servico_apagar.html'
     success_url = reverse_lazy('servicos')

@@ -81,8 +81,8 @@ class AgendamentoAddView(PermissionRequiredMixin, SuccessMessageMixin,CreateView
                 return self.render_to_response(self.get_context_data(form=form))
 
 class AgendamentoUpdateView(PermissionRequiredMixin, SuccessMessageMixin,UpdateView):
-    permission_required = 'agendamentos.view_agendamento'
-    permission_denied_message = 'Visualizar agendamento'
+    permission_required = 'agendamentos.update_agendamento'
+    permission_denied_message = 'Editar agendamentos'
     model = Agendamento
     form_class = AgendamentoModelForm
     template_name = 'agendamento_form.html'
@@ -128,8 +128,8 @@ class AgendamentoUpdateView(PermissionRequiredMixin, SuccessMessageMixin,UpdateV
 
 
 class AgendamentoDeleteView(PermissionRequiredMixin, SuccessMessageMixin,DeleteView):
-    permission_required = 'agendamentos.view_agendamento'
-    permission_denied_message = 'Visualizar agendamento'
+    permission_required = 'agendamentos.delete_agendamento'
+    permission_denied_message = 'Excluir agendamento'
     model = Agendamento
     template_name = 'agendamento_apagar.html'
     success_url = reverse_lazy('agendamentos')
