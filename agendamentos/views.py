@@ -1,6 +1,7 @@
 from urllib import request
 
 from django.contrib import messages
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
@@ -16,7 +17,9 @@ from .forms import AgendamentoListForm, AgendamentoModelForm, AgendamentosServic
 from .models import Agendamento, OrdemServicos
 
 
-class AgendamentosView(ListView):
+class AgendamentosView(PermissionRequiredMixin, ListView):
+    permission_required = 'agendamentos.view_agendamento'
+    permission_denied_message = 'Visualizar agendamento'
     model = Agendamento
     template_name = 'agendamentos.html'
 
@@ -48,7 +51,9 @@ class AgendamentosView(ListView):
         else:
             return messages.info(self.request, 'Não existem agendamentos cadastrados!')
 
-class AgendamentoAddView(SuccessMessageMixin,CreateView):
+class AgendamentoAddView(PermissionRequiredMixin, SuccessMessageMixin,CreateView):
+    permission_required = 'agendamentos.add_agendamento'
+    permission_denied_message = 'Cadastrar agendamento'
     model = Agendamento
     form_class = AgendamentoModelForm
     template_name = 'agendamento_form.html'
@@ -75,7 +80,9 @@ class AgendamentoAddView(SuccessMessageMixin,CreateView):
             else:
                 return self.render_to_response(self.get_context_data(form=form))
 
-class AgendamentoUpdateView(SuccessMessageMixin,UpdateView):
+class AgendamentoUpdateView(PermissionRequiredMixin, SuccessMessageMixin,UpdateView):
+    permission_required = 'agendamentos.view_agendamento'
+    permission_denied_message = 'Visualizar agendamento'
     model = Agendamento
     form_class = AgendamentoModelForm
     template_name = 'agendamento_form.html'
@@ -120,7 +127,9 @@ class AgendamentoUpdateView(SuccessMessageMixin,UpdateView):
                 return self.render_to_response(self.get_context_data(form=form))
 
 
-class AgendamentoDeleteView(SuccessMessageMixin,DeleteView):
+class AgendamentoDeleteView(PermissionRequiredMixin, SuccessMessageMixin,DeleteView):
+    permission_required = 'agendamentos.view_agendamento'
+    permission_denied_message = 'Visualizar agendamento'
     model = Agendamento
     template_name = 'agendamento_apagar.html'
     success_url = reverse_lazy('agendamentos')
@@ -128,6 +137,7 @@ class AgendamentoDeleteView(SuccessMessageMixin,DeleteView):
 
 
 class AgendamentoExibir(DetailView):
+
     model = Agendamento
     template_name = 'agendamento_exibir.html'
 
