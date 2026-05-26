@@ -20,6 +20,9 @@ from django.urls import path, include
 
 from agenda import settings
 
+admin.site.site_header = "Agendamento de Horários"
+admin.site.index_title = 'LavaCar - Agendamento de Horários'
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('home.urls')),
