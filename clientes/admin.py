@@ -1,3 +1,15 @@
 from django.contrib import admin
 
-# Register your models here.
+from django.utils.html import format_html
+from .models import Cliente
+
+@admin.register(Cliente)
+class ClienteAdmin(admin.ModelAdmin):
+    fields = ('nome', 'endereco', 'fone', 'email', 'foto', 'fotografia')
+    list_display = ('nome', 'endereco', 'email')
+    search_fields = ('nome', 'fone',)
+
+    def fotografia(selfself, obj):
+        if obj.foto:
+            return format_html('<img width="75px" src="{}" />', obj.foto.url)
+        pass
