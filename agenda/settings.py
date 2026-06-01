@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
-
+import decouple
 from django.conf.global_settings import EMAIL_BACKEND, LOGIN_REDIRECT_URL
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -22,12 +22,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-=9dhu387xfbl=qb2lg%dib)0=2s2vtz=k4oal+4v73i=3+%v(8'
+SECRET_KEY = decouple.config("SECRET_KEY")
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = decouple.config("DEBUG", cast=bool)
+ALLOWED_HOSTS = decouple.config("ALLOWED_HOSTS").split(",")
 
-ALLOWED_HOSTS = []
+
 
 
 # Application definition
@@ -41,7 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 ]
 
-INSTALLED_APPS += ['django_bootstrap5', 'django_seed', 'stdimage', 'django_extensions']
+INSTALLED_APPS += ['django_bootstrap5',]
 
 INSTALLED_APPS += ['home', 'fornecedores', 'clientes', 'funcionarios', 'produtos', 'servicos', 'agendamentos', ]
 
@@ -80,8 +82,12 @@ WSGI_APPLICATION = 'agenda.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'agenda',
+        'USER': 'postgres',
+        'PASSWORD': '1234',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
@@ -126,12 +132,12 @@ STATICFILES_DIRS = [BASE_DIR / 'static',]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'basillisky@gmail.com'
-EMAIL_HOST_PASSWORD = 'eyzeixjlunfozkua'
+EMAIL_BACKEND = decouple.config("EMAIL_BACKEND")
+EMAIL_HOST = decouple.config("EMAIL_HOST")
+EMAIL_PORT = decouple.config("EMAIL_PORT")
+EMAIL_USE_TLS = decouple.config("EMAIL_USE_TLS")
+EMAIL_HOST_USER = decouple.config("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = decouple.config( "EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = 'Lavacar'
 
 LOGIN_REDIRECT_URL = 'index'
