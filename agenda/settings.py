@@ -14,6 +14,9 @@ from pathlib import Path
 import decouple
 from django.conf.global_settings import EMAIL_BACKEND, LOGIN_REDIRECT_URL
 
+import cloudinary
+import dj_database_url
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -43,7 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 ]
 
-INSTALLED_APPS += ['django_bootstrap5',]
+INSTALLED_APPS += ['django_bootstrap5', 'cloudinary']
 
 INSTALLED_APPS += ['home', 'fornecedores', 'clientes', 'funcionarios', 'produtos', 'servicos', 'agendamentos', ]
 
@@ -81,14 +84,7 @@ WSGI_APPLICATION = 'agenda.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'agenda',
-        'USER': 'postgres',
-        'PASSWORD': '1234',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
+    'default': dj_database_url.parse("postgresql://agenda_impm_user:xuJeuzCDPOTDsJ8GJCNHl6nAd0LmOjdY@dpg-d8f1k4reo5us73bc67pg-a.oregon-postgres.render.com/agenda_impm")
 }
 
 # Password validation
@@ -125,6 +121,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+cloudinary.config(
+    cloud_name = "dezb05sle",
+    api_key = "585969657516985",
+    api_secret = "JRyaCxAOvWqXbvNTgwATVzBlhC0",
+    secure=True,
+)
+
 MEDIA_URL = '/media/'
 
 STATICFILES_DIRS = [BASE_DIR / 'static',]
