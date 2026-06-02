@@ -1,7 +1,7 @@
 from cloudinary.models import CloudinaryField
 from django.db import models
 from django.db.models.functions import Upper
-from stdimage import StdImageField
+
 
 # Create your models here.
 
